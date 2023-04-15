@@ -18,7 +18,15 @@ type Props = {
 
 const Signup = ({ navigateToSignInHandler }: Props) => {
   return (
-    <>
+    <Box
+      sx={{
+        my: 8,
+        mx: 4,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
       <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
         <LockOutlinedIcon />
       </Avatar>
@@ -103,7 +111,7 @@ const Signup = ({ navigateToSignInHandler }: Props) => {
           </Grid>
         </Grid>
       </Box>
-    </>
+    </Box>
   );
 };
 
