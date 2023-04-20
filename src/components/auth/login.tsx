@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 
+//TO-DO login-content.tsx & gpt last res
+
 type Props = {
   navigateToSignUpHandler: () => void;
 };
