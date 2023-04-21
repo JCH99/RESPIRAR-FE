@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Avatar,
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   FormControlLabel,
   Grid,
   Link,
@@ -11,14 +12,38 @@ import {
   Typography,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { useForm, Controller } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { signInReq } from "../../../api/auth";
+import { SnackbarsContext } from "../../../context/snackbars-context";
 
-//TO-DO login-content.tsx & gpt last res
+type FormData = {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+};
 
 type Props = {
   navigateToSignUpHandler: () => void;
 };
 
 const Login = ({ navigateToSignUpHandler }: Props) => {
+  const { openSnackbar } = useContext(SnackbarsContext);
+  const { control, handleSubmit } = useForm<FormData>();
+
+  const { mutate: signIn, isLoading } = useMutation(["loginUser"], signInReq, {
+    onSuccess: async (data, variables) => {
+      console.log(data, variables);
+    },
+    onError: (error: any) => {
+      openSnackbar(error.message, "error");
+    },
+  });
+
+  const onSubmit = (data: FormData) => {
+    signIn({ name: data.email, password: data.password });
+  };
+
   return (
     <Box
       sx={{
@@ -38,40 +63,80 @@ const Login = ({ navigateToSignUpHandler }: Props) => {
       <Box
         component="form"
         noValidate
-        onSubmit={() => console.log("submit")}
+        onSubmit={handleSubmit(onSubmit)}
         sx={{ mt: 1 }}
       >
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="email"
-          label="Email Address"
+        <Controller
           name="email"
-          autoComplete="email"
-          autoFocus
+          control={control}
+          defaultValue=""
+          rules={{ required: true }}
+          render={({ field, fieldState: { error } }) => (
+            <TextField
+              {...field}
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              autoComplete="email"
+              autoFocus
+              error={!!error}
+              helperText={error ? "Email is required" : ""}
+            />
+          )}
         />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
+
+        <Controller
           name="password"
-          label="Password"
-          type="password"
-          id="password"
-          autoComplete="current-password"
+          control={control}
+          defaultValue=""
+          rules={{ required: true }}
+          render={({ field, fieldState: { error } }) => (
+            <TextField
+              {...field}
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              error={!!error}
+              helperText={error ? "Password is required" : ""}
+            />
+          )}
         />
-        <FormControlLabel
-          control={<Checkbox value="remember" color="primary" />}
-          label="Remember me"
+        <Controller
+          name="rememberMe"
+          control={control}
+          defaultValue={false}
+          render={({ field }) => (
+            <FormControlLabel
+              control={<Checkbox {...field} color="primary" />}
+              label="Remember me"
+            />
+          )}
         />
+
         <Button
           type="submit"
           fullWidth
           variant="contained"
           sx={{ mt: 3, mb: 2 }}
         >
-          Sign In
+          {isLoading ? (
+            <CircularProgress
+              sx={{
+                color: (theme) => theme.palette.primary.contrastText,
+              }}
+              size={25}
+              thickness={4}
+            />
+          ) : (
+            "Sign In"
+          )}
         </Button>
         <Grid
           onClick={navigateToSignUpHandler}
