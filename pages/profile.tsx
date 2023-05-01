@@ -1,13 +1,12 @@
 import { Typography } from "@mui/material";
+import React from "react";
 
-type Props = {};
-
-const Main = (props: Props) => {
+const Profile = () => {
   return (
     <Typography align="center" variant="h2">
-      Main View
+      Profile View
     </Typography>
   );
 };
 
-export default Main;
+export default Profile;

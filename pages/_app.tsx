@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-query";
 import { AuthProvider } from "../context/auth-context";
 import SnackbarsProvider from "../context/snackbars-context";
+import Layout from "../src/components/ui/layout";
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -37,10 +38,11 @@ export default function MyApp(props: MyAppProps) {
               />
             </Head>
             <ThemeProvider theme={theme}>
-              {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
               <CssBaseline />
               <SnackbarsProvider>
-                <Component {...pageProps} />
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
               </SnackbarsProvider>
             </ThemeProvider>
           </CacheProvider>

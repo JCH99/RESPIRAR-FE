@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       tokenInterceptor(token);
       router.push("/main");
     } else {
-      router.push("/auth");
+      // router.push("/auth");
     }
   }, [token]);
 
