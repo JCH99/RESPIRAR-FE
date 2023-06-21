@@ -16,6 +16,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { signInReq } from "../../../api/auth";
 import { SnackbarsContext } from "../../../context/snackbars-context";
+import { useRouter } from "next/router";
 
 type FormData = {
   email: string;
@@ -23,17 +24,17 @@ type FormData = {
   rememberMe: boolean;
 };
 
-type Props = {
-  navigateToSignUpHandler: () => void;
-};
+type Props = {};
 
-const Login = ({ navigateToSignUpHandler }: Props) => {
+const Login = ({}: Props) => {
   const { openSnackbar } = useContext(SnackbarsContext);
   const { control, handleSubmit } = useForm<FormData>();
+  const router = useRouter();
 
   const { mutate: signIn, isLoading } = useMutation(["loginUser"], signInReq, {
     onSuccess: async (data, variables) => {
-      console.log(data, variables);
+      console.log(data.headers["X-Subject-Token"]);
+      router.push(`${process.env.NEXT_PUBLIC_BASE_URL as string}/idm`);
     },
     onError: (error: any) => {
       openSnackbar(error.message, "error");
@@ -139,7 +140,7 @@ const Login = ({ navigateToSignUpHandler }: Props) => {
           )}
         </Button>
         <Grid
-          onClick={navigateToSignUpHandler}
+          onClick={() => console.log("TODO")}
           container
           sx={{ display: "flex", justifyContent: "end" }}
         >
