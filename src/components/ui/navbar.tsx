@@ -92,8 +92,8 @@ const Navbar = (props: Props) => {
         open={openProfileModal}
         handleClose={handleCloseProfileModal}
         userData={{
-          username: authCtx!.user!.username,
-          email: authCtx!.user!.email!,
+          username: authCtx!.user?.username || "",
+          email: authCtx!.user?.email || "",
         }}
       />
     </AppBar>

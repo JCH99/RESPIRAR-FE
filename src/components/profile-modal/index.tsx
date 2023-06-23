@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { patchUserReq } from "../../../api/api";
 import { SnackbarsContext } from "../../../context/snackbars-context";
 import { AuthContext } from "../../../context/auth-context";
+import { pick } from "lodash";
 
 type FormData = {
   username: string;
@@ -33,15 +34,13 @@ export default function ProfileModal(props: Props) {
   const {
     control,
     handleSubmit,
-    formState: { isDirty, isValid },
+    formState: { isDirty, isValid, dirtyFields },
     reset,
-  } = useForm<FormData>({
-    defaultValues: userData,
-  });
+  } = useForm<FormData>();
 
   useEffect(() => {
-    reset();
-  }, [open]);
+    reset(userData);
+  }, [open, userData]);
 
   const { mutate: patchUser } = useMutation(["patchUser"], patchUserReq, {
     onSuccess: async () => {
@@ -51,13 +50,12 @@ export default function ProfileModal(props: Props) {
     onError: (error: any) => {
       openSnackbar("Hubo un error. Por favor intente luego", "error");
     },
-    onSettled: () => {
-      handleClose();
-    },
   });
 
   const onSubmit = (data: FormData) => {
-    patchUser({ userId: authCtx!.user!.id, userData: data });
+    const filteredData = pick(data, Object.keys(dirtyFields));
+    patchUser({ userId: authCtx!.user!.id, userData: filteredData });
+    handleClose();
   };
 
   return (
