@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-query";
 import { AuthProvider } from "../context/auth-context";
 import SnackbarsProvider from "../context/snackbars-context";
+import Layout from "../src/components/ui/layout";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -36,10 +37,12 @@ export default function MyApp(props: MyAppProps) {
               />
             </Head>
             <ThemeProvider theme={theme}>
-              <CssBaseline />
-              <SnackbarsProvider>
-                <Component {...pageProps} />
-              </SnackbarsProvider>
+              <Layout>
+                <CssBaseline />
+                <SnackbarsProvider>
+                  <Component {...pageProps} />
+                </SnackbarsProvider>
+              </Layout>
             </ThemeProvider>
           </CacheProvider>
         </AuthProvider>

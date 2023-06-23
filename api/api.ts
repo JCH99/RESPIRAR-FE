@@ -66,7 +66,7 @@ export const patchUserReq = async (data: PatchUser) => {
   const { userId, userData } = data;
   return axios.patch(
     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/users/${userId}`,
-    userData
+    { user: userData }
   );
 };
 

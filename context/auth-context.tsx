@@ -11,6 +11,7 @@ export interface AContext {
   token?: string;
   user?: User;
   setCurrentToken: (user: any) => void;
+  logout: () => void;
 }
 
 export const AuthContext = createContext<AContext | undefined>(undefined);
@@ -67,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     token,
     setCurrentToken,
     user,
+    logout: localLogout,
   };
 
   return (

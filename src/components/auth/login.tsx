@@ -48,7 +48,7 @@ const Login = () => {
       authContext?.setCurrentToken(token);
     },
     onError: (error: any) => {
-      openSnackbar(error.message, "error");
+      openSnackbar("Hubo un error. Ingrese los datos correctamente", "error");
     },
   });
 
@@ -84,8 +84,8 @@ const Login = () => {
           Sign in
         </Typography>
         <Box
-          component="form"
           noValidate
+          component="form"
           onSubmit={handleSubmit(onSubmit)}
           sx={{ mt: 1 }}
         >
