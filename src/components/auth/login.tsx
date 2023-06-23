@@ -14,7 +14,7 @@ import {
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
-import { signInReq } from "../../../api/auth";
+import { signInReq } from "../../../api/api";
 import { SnackbarsContext } from "../../../context/snackbars-context";
 import RegisterModal from "./register-modal";
 import { useRouter } from "next/router";
@@ -35,17 +35,17 @@ const Login = () => {
 
   const { mutate: signIn, isLoading } = useMutation(["loginUser"], signInReq, {
     onSuccess: async (data, variables) => {
-      console.log(data, variables);
-
+      // console.log(data.headers["x-subject-token"], variables);
+      const token = data.headers["x-subject-token"];
       if (watch().rememberMe) {
-        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("token", token);
         sessionStorage.removeItem("token");
       } else {
         localStorage.removeItem("token");
-        sessionStorage.setItem("token", data.data.token);
+        sessionStorage.setItem("token", token);
       }
 
-      authContext?.setCurrentToken(data.data.token);
+      authContext?.setCurrentToken(token);
     },
     onError: (error: any) => {
       openSnackbar(error.message, "error");

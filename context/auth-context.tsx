@@ -4,9 +4,12 @@ import { setCookie, deleteCookie } from "cookies-next";
 import { useQuery } from "@tanstack/react-query";
 import { tokenInterceptor } from "../utils/interceptors";
 import axios from "axios";
+import { User } from "../utils/interfaces";
+import { getUserInfoViaTokenReq } from "../api/api";
 
 export interface AContext {
   token?: string;
+  user?: User;
   setCurrentToken: (user: any) => void;
 }
 
@@ -15,6 +18,21 @@ export const AuthContext = createContext<AContext | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const [token, setToken] = useState<string | undefined>(undefined);
+  const [user, setUser] = useState<User | undefined>(undefined);
+
+  const { data: userInfoViaToken } = useQuery(
+    ["getUserInfoViaToken", token],
+    () => getUserInfoViaTokenReq(token!),
+    {
+      enabled: !!token,
+    }
+  );
+
+  useEffect(() => {
+    if (userInfoViaToken) {
+      setUser(userInfoViaToken.data.User);
+    }
+  }, [userInfoViaToken]);
 
   useEffect(() => {
     const tokenLS = localStorage.getItem("token");
@@ -40,6 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const localLogout = async () => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
+    deleteCookie("token");
     setCurrentToken(undefined);
     router.push("/auth");
   };
@@ -47,6 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const stateValues: AContext = {
     token,
     setCurrentToken,
+    user,
   };
 
   return (
