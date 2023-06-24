@@ -13,16 +13,20 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
-import ProfileModal from "../profile-modal";
+import ProfileModal, { ProfileFormData } from "../profile-modal";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {};
 
 const Navbar = (props: Props) => {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const authCtx = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  const [openProfileModal, setOpenProfileModal] = useState(false);
+  const [openProfileModal, setOpenProfileModal] = useState<{
+    userId: string;
+    userData: ProfileFormData;
+  } | null>(null);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -33,11 +37,22 @@ const Navbar = (props: Props) => {
 
   const handleProfileModalClick = () => {
     setAnchorEl(null);
-    setOpenProfileModal(true);
+    setOpenProfileModal({
+      userId: authCtx!.user!.id!,
+      userData: {
+        username: authCtx!.user!.username,
+        email: authCtx!.user!.email,
+        enabled: authCtx!.user!.enabled,
+      },
+    });
   };
 
   const handleCloseProfileModal = () => {
-    setOpenProfileModal(false);
+    setOpenProfileModal(null);
+  };
+
+  const editSuccessCallback = () => {
+    queryClient.invalidateQueries(["getUserInfoViaToken", authCtx?.token]);
   };
 
   return (
@@ -89,17 +104,14 @@ const Navbar = (props: Props) => {
       </Toolbar>
 
       <ProfileModal
-        open={openProfileModal}
         handleClose={handleCloseProfileModal}
-        userData={{
-          username: authCtx!.user?.username || "",
-          email: authCtx!.user?.email || "",
-        }}
+        userId={openProfileModal?.userId}
+        userData={openProfileModal?.userData}
+        hideEnableToggle
+        successCallback={editSuccessCallback}
       />
     </AppBar>
   );
 };
 
 export default Navbar;
-
-/* <Image src="/images/logo.png" alt="logo" height={90} width={194} />  */

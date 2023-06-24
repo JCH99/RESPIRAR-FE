@@ -7,64 +7,66 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { Controller, useForm } from "react-hook-form";
-import { Box } from "@mui/material";
+import { Box, FormControlLabel, FormGroup, Switch } from "@mui/material";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { patchUserReq } from "../../../api/api";
 import { SnackbarsContext } from "../../../context/snackbars-context";
 import { AuthContext } from "../../../context/auth-context";
 import { pick } from "lodash";
 
-type FormData = {
+export type ProfileFormData = {
   username: string;
   email: string;
+  enabled: boolean;
 };
 
 type Props = {
-  open: boolean;
   handleClose: () => void;
-  userData: FormData;
+  userId: string | undefined;
+  userData: ProfileFormData | undefined;
+  hideEnableToggle?: boolean;
+  successCallback?: () => void;
 };
 
 export default function ProfileModal(props: Props) {
-  const { open, handleClose, userData } = props;
+  const { handleClose, userId, userData, hideEnableToggle, successCallback } =
+    props;
   const { openSnackbar } = useContext(SnackbarsContext);
-  const authCtx = useContext(AuthContext);
-  const queryClient = useQueryClient();
 
   const {
     control,
     handleSubmit,
-    formState: { isDirty, isValid, dirtyFields },
+    formState: { isDirty, dirtyFields },
     reset,
-  } = useForm<FormData>();
+  } = useForm<ProfileFormData>();
 
   useEffect(() => {
     reset(userData);
-  }, [open, userData]);
+  }, [userId, userData]);
 
   const { mutate: patchUser } = useMutation(["patchUser"], patchUserReq, {
     onSuccess: async () => {
       openSnackbar("Se editaron correctamente los datos!", "success");
-      queryClient.invalidateQueries(["getUserInfoViaToken", authCtx?.token]);
+      successCallback && successCallback();
     },
     onError: (error: any) => {
       openSnackbar("Hubo un error. Por favor intente luego", "error");
     },
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: ProfileFormData) => {
     const filteredData = pick(data, Object.keys(dirtyFields));
-    patchUser({ userId: authCtx!.user!.id, userData: filteredData });
+    patchUser({ userId: userId!, userData: filteredData });
     handleClose();
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={!!userId && !!userData} onClose={handleClose}>
       <Box noValidate component="form" onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle>Editar Perfil</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ marginBottom: "12px" }}>
-            Aquí podras editar los datos básicos de tu usuario.
+            Aquí podras editar los datos básicos del usuario.
           </DialogContentText>
 
           <Controller
@@ -82,7 +84,7 @@ export default function ProfileModal(props: Props) {
                 label="Username"
                 autoFocus
                 error={!!error}
-                helperText={error ? "Username is required" : ""}
+                helperText={error ? "El usuario es requerido" : ""}
               />
             )}
           />
@@ -90,7 +92,13 @@ export default function ProfileModal(props: Props) {
             name="email"
             control={control}
             defaultValue=""
-            rules={{ required: true }}
+            rules={{
+              required: "El email es requerido",
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+                message: "El Email es invalido",
+              },
+            }}
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
@@ -101,16 +109,33 @@ export default function ProfileModal(props: Props) {
                 label="Email Address"
                 autoComplete="email"
                 error={!!error}
-                helperText={error ? "Email is required" : ""}
+                helperText={error ? error.message : ""}
               />
             )}
           />
+          {!hideEnableToggle && (
+            <Controller
+              name="enabled"
+              control={control}
+              render={({ field }) => (
+                <Box>
+                  <FormControlLabel
+                    id="enabled"
+                    control={
+                      <Switch checked={field.value} onChange={field.onChange} />
+                    }
+                    label="Habilitado"
+                  />
+                </Box>
+              )}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button type="button" onClick={handleClose}>
             Cancelar
           </Button>
-          <Button disabled={!isDirty || !isValid} type="submit">
+          <Button disabled={!isDirty} type="submit">
             Guardar Cambios
           </Button>
         </DialogActions>

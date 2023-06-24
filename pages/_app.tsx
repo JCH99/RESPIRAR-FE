@@ -37,12 +37,12 @@ export default function MyApp(props: MyAppProps) {
               />
             </Head>
             <ThemeProvider theme={theme}>
-              <Layout>
-                <CssBaseline />
-                <SnackbarsProvider>
+              <SnackbarsProvider>
+                <Layout>
+                  <CssBaseline />
                   <Component {...pageProps} />
-                </SnackbarsProvider>
-              </Layout>
+                </Layout>
+              </SnackbarsProvider>
             </ThemeProvider>
           </CacheProvider>
         </AuthProvider>
