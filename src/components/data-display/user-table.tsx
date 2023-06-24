@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -14,7 +14,9 @@ import DoneAllIcon from "@mui/icons-material/DoneAll";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ProfileModal, { ProfileFormData } from "../profile-modal";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteUserReq } from "../../../api/api";
+import { SnackbarsContext } from "../../../context/snackbars-context";
 
 type Props = {
   users: User[];
@@ -23,10 +25,21 @@ type Props = {
 export default function UserTable(props: Props) {
   const { users } = props;
   const queryClient = useQueryClient();
+  const { openSnackbar } = useContext(SnackbarsContext);
   const [openProfileModal, setOpenProfileModal] = useState<{
     userId: string;
     userData: ProfileFormData;
   } | null>(null);
+
+  const { mutate: deleteUser } = useMutation(["deleteUser"], deleteUserReq, {
+    onSuccess: async () => {
+      openSnackbar("Se elimino correctamente el usuario!", "success");
+      editAndDeleteSuccessCallback();
+    },
+    onError: (error: any) => {
+      openSnackbar("Hubo un error. Por favor intente luego", "error");
+    },
+  });
 
   const handleProfileModalClick = (profileModal: {
     userId: string;
@@ -39,10 +52,10 @@ export default function UserTable(props: Props) {
     setOpenProfileModal(null);
   };
 
-  const editSuccessCallback = () => {
+  const editAndDeleteSuccessCallback = () => {
     queryClient.invalidateQueries(["getUserList"]);
   };
-  console.log(users);
+
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
@@ -95,7 +108,10 @@ export default function UserTable(props: Props) {
                       />
                     </IconButton>
                     <IconButton>
-                      <DeleteIcon color="error" />
+                      <DeleteIcon
+                        onClick={() => deleteUser(user.id)}
+                        color="error"
+                      />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -109,7 +125,7 @@ export default function UserTable(props: Props) {
         handleClose={handleCloseProfileModal}
         userId={openProfileModal?.userId}
         userData={openProfileModal?.userData}
-        successCallback={editSuccessCallback}
+        successCallback={editAndDeleteSuccessCallback}
       />
     </Box>
   );
