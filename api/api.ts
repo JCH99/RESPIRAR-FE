@@ -103,9 +103,9 @@ export const getOrganizationList = async () => {
 type PatchOrganization = {
   organizationId: string;
   organizationData: {
-    name: string;
-    description: string;
-    website: string;
+    name?: string;
+    description?: string;
+    website?: string;
   };
 };
 

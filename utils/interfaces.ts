@@ -16,3 +16,14 @@ export type User = {
   enabled: boolean;
   admin: boolean;
 };
+
+export type Organization = {
+  role: Role;
+  Organization: {
+    id: string;
+    name: string;
+    description: string;
+    image: string;
+    website: string;
+  };
+};

@@ -126,6 +126,7 @@ export default function UserTable(props: Props) {
         userId={openProfileModal?.userId}
         userData={openProfileModal?.userData}
         successCallback={editAndDeleteSuccessCallback}
+        hideEnableToggle // api does not work properly when trying to patch 'enabled' property.
       />
     </Box>
   );
