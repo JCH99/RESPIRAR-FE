@@ -3,6 +3,8 @@ import { Role, UserInOrganization } from "../utils/interfaces";
 
 const API_VERSION = "v1";
 
+//#region users
+
 type SignInData = {
   name: string;
   password: string;
@@ -23,12 +25,6 @@ export const getUserInfoViaTokenReq = async (subjectToken: string) => {
         "X-Subject-token": subjectToken,
       },
     }
-  );
-};
-
-export const getUserInfoViaIdReq = async (userId: string) => {
-  return axios.get(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/users/${userId}`
   );
 };
 
@@ -76,6 +72,16 @@ export const deleteUserReq = async (userId: string) => {
   );
 };
 
+// export const getUserInfoViaIdReq = async (userId: string) => {
+//   return axios.get(
+//     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/users/${userId}`
+//   );
+// };
+
+//#endregion users
+
+//#region organizations
+
 type NewOrganization = {
   name: string;
   description: string;
@@ -88,12 +94,6 @@ export const createOrganizationReq = async (data: NewOrganization) => {
   );
 };
 
-export const getOrganizationDetails = async (organizationId: string) => {
-  return axios.get(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${organizationId}`
-  );
-};
-
 export const getOrganizationList = async () => {
   return axios.get(
     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations`
@@ -103,13 +103,9 @@ export const getOrganizationList = async () => {
 type PatchOrganization = {
   organizationId: string;
   organizationData: {
-    username?: string;
-    email?: string;
-    enabled?: boolean;
-    gravatar?: boolean;
-    date_password?: string;
-    description?: string;
-    website?: string;
+    name: string;
+    description: string;
+    website: string;
   };
 };
 
@@ -127,6 +123,16 @@ export const deleteOrganizationReq = async (organizationId: string) => {
   );
 };
 
+// export const getOrganizationDetails = async (organizationId: string) => {
+//   return axios.get(
+//     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${organizationId}`
+//   );
+// };
+
+//#endregion
+
+//#region users x organizations
+
 type AddUserToOrganization = UserInOrganization & {
   role: Role;
 };
@@ -143,14 +149,16 @@ export const getOrganizationUsers = async (organizationId: string) => {
   );
 };
 
-export const getUserRoleInOrganization = async (data: UserInOrganization) => {
-  return axios.get(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${data.organizationId}/users/${data.userId}/organization_roles`
-  );
-};
-
 export const removeUserFromOrganization = async (data: UserInOrganization) => {
   return axios.delete(
     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${data.organizationId}/users/${data.userId}/organization_roles/member`
   );
 };
+
+// export const getUserRoleInOrganization = async (data: UserInOrganization) => {
+//   return axios.get(
+//     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${data.organizationId}/users/${data.userId}/organization_roles`
+//   );
+// };
+
+//#endregion
