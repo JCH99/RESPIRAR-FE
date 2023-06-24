@@ -13,7 +13,7 @@ import NotInterestedIcon from "@mui/icons-material/NotInterested";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ProfileModal, { ProfileFormData } from "../modals/user-modal";
+import UserModal, { UserFormData, UserModalAction } from "../modals/user-modal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteUserReq } from "../../../api/api";
 import { SnackbarsContext } from "../../../context/snackbars-context";
@@ -28,8 +28,9 @@ export default function UserTable(props: Props) {
   const queryClient = useQueryClient();
   const { openSnackbar } = useContext(SnackbarsContext);
   const [openProfileModal, setOpenProfileModal] = useState<{
-    userId: string;
-    userData: ProfileFormData;
+    action: UserModalAction;
+    userId?: string;
+    userData?: UserFormData;
   } | null>(null);
   const authContext = useContext(AuthContext);
 
@@ -45,9 +46,9 @@ export default function UserTable(props: Props) {
 
   const handleProfileModalClick = (profileModal: {
     userId: string;
-    userData: ProfileFormData;
+    userData: UserFormData;
   }) => {
-    setOpenProfileModal(profileModal);
+    setOpenProfileModal({ ...profileModal, action: UserModalAction.PATCH });
   };
 
   const handleCloseProfileModal = () => {
@@ -63,7 +64,9 @@ export default function UserTable(props: Props) {
       <Paper sx={{ width: "100%", mb: 2 }}>
         <TableToolbar
           name="Usuarios"
-          addHandler={() => console.log("TODO")}
+          addHandler={() =>
+            setOpenProfileModal({ action: UserModalAction.CREATE })
+          }
           count={users.length}
         />
 
@@ -107,7 +110,6 @@ export default function UserTable(props: Props) {
                               userData: {
                                 username: user.username,
                                 email: user.email,
-                                enabled: user.enabled,
                               },
                             })
                           }
@@ -139,12 +141,12 @@ export default function UserTable(props: Props) {
         </Box>
       </Paper>
 
-      <ProfileModal
+      <UserModal
         handleClose={handleCloseProfileModal}
+        action={openProfileModal?.action}
         userId={openProfileModal?.userId}
         userData={openProfileModal?.userData}
         successCallback={editAndDeleteSuccessCallback}
-        hideEnableToggle // api does not work properly when trying to patch 'enabled' property.
       />
     </Box>
   );

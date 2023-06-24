@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
@@ -7,42 +7,73 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { Controller, useForm } from "react-hook-form";
-import { Box, FormControlLabel, FormGroup, Switch } from "@mui/material";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { patchUserReq } from "../../../api/api";
+import {
+  Box,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  OutlinedInput,
+} from "@mui/material";
+import { useMutation } from "@tanstack/react-query";
+import { createUserReq, patchUserReq } from "../../../api/api";
 import { SnackbarsContext } from "../../../context/snackbars-context";
-import { AuthContext } from "../../../context/auth-context";
-import { pick } from "lodash";
 
-export type ProfileFormData = {
+import { pick } from "lodash";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+
+export enum UserModalAction {
+  CREATE = "create",
+  PATCH = "patch",
+}
+
+export type UserFormData = {
   username: string;
   email: string;
-  enabled: boolean;
+  password?: string;
+  repeatPassword?: string;
 };
 
 type Props = {
+  action?: UserModalAction;
   handleClose: () => void;
   userId?: string;
-  userData?: ProfileFormData;
-  hideEnableToggle?: boolean;
+  userData?: UserFormData;
   successCallback?: () => void;
 };
 
-export default function ProfileModal(props: Props) {
-  const { handleClose, userId, userData, hideEnableToggle, successCallback } =
-    props;
+export default function UserModal(props: Props) {
+  const { action, handleClose, userId, userData, successCallback } = props;
   const { openSnackbar } = useContext(SnackbarsContext);
+  const [showPassword, setShowPassword] = useState(false);
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleMouseDownPassword = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+  };
 
   const {
     control,
     handleSubmit,
     formState: { isDirty, dirtyFields },
     reset,
-  } = useForm<ProfileFormData>();
+  } = useForm<UserFormData>();
 
   useEffect(() => {
     reset(userData);
-  }, [userId, userData]);
+  }, [action, userId, userData]);
+
+  const { mutate: createUser } = useMutation(["createUser"], createUserReq, {
+    onSuccess: async () => {
+      openSnackbar("Se ha creado correctamente el usuario!", "success");
+      successCallback && successCallback();
+    },
+    onError: (error: any) => {
+      openSnackbar("Hubo un error. Por favor intente luego", "error");
+    },
+  });
 
   const { mutate: patchUser } = useMutation(["patchUser"], patchUserReq, {
     onSuccess: async () => {
@@ -54,14 +85,24 @@ export default function ProfileModal(props: Props) {
     },
   });
 
-  const onSubmit = (data: ProfileFormData) => {
-    const filteredData = pick(data, Object.keys(dirtyFields));
-    patchUser({ userId: userId!, userData: filteredData });
+  const onSubmit = (data: UserFormData) => {
+    if (action === UserModalAction.CREATE) {
+      createUser({
+        username: data.username,
+        email: data.email,
+        password: data.password!,
+      });
+    }
+    if (action === UserModalAction.PATCH) {
+      const filteredData = pick(data, Object.keys(dirtyFields));
+      patchUser({ userId: userId!, userData: filteredData });
+    }
+
     handleClose();
   };
 
   return (
-    <Dialog open={!!userId && !!userData} onClose={handleClose}>
+    <Dialog open={!!action} onClose={handleClose}>
       <Box noValidate component="form" onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle>Editar Perfil</DialogTitle>
         <DialogContent>
@@ -113,22 +154,95 @@ export default function ProfileModal(props: Props) {
               />
             )}
           />
-          {!hideEnableToggle && (
-            <Controller
-              name="enabled"
-              control={control}
-              render={({ field }) => (
-                <Box>
-                  <FormControlLabel
-                    id="enabled"
-                    control={
-                      <Switch checked={field.value} onChange={field.onChange} />
-                    }
-                    label="Habilitado"
-                  />
-                </Box>
-              )}
-            />
+
+          {action === UserModalAction.CREATE && (
+            <>
+              <Box sx={{ mt: "12px" }}>
+                <Controller
+                  name="password"
+                  control={control}
+                  defaultValue=""
+                  rules={{ required: true }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl variant="outlined" fullWidth>
+                      <InputLabel htmlFor="password">Contraseña</InputLabel>
+                      <OutlinedInput
+                        {...field}
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        error={!!error}
+                        endAdornment={
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={handleClickShowPassword}
+                              onMouseDown={handleMouseDownPassword}
+                              edge="end"
+                            >
+                              {showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        }
+                        label="Contraseña"
+                      />
+                      {error && (
+                        <FormHelperText error id="password-error">
+                          {error.message}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  )}
+                />
+              </Box>
+
+              <Box sx={{ mt: "18px" }}>
+                <Controller
+                  name="repeatPassword"
+                  control={control}
+                  defaultValue=""
+                  rules={{ required: true }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl variant="outlined" fullWidth>
+                      <InputLabel htmlFor="repeatPassword">
+                        Repetir Contraseña
+                      </InputLabel>
+                      <OutlinedInput
+                        {...field}
+                        id="repeatPassword"
+                        type={showPassword ? "text" : "password"}
+                        error={!!error}
+                        endAdornment={
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={handleClickShowPassword}
+                              onMouseDown={handleMouseDownPassword}
+                              edge="end"
+                            >
+                              {showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        }
+                        label="Repetir Contraseña"
+                      />
+                      {error && (
+                        <FormHelperText error id="password-error">
+                          {error.message}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  )}
+                />
+              </Box>
+            </>
           )}
         </DialogContent>
         <DialogActions>

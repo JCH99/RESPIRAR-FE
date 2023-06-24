@@ -13,7 +13,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
-import ProfileModal, { ProfileFormData } from "../modals/user-modal";
+import UserModal, { UserFormData, UserModalAction } from "../modals/user-modal";
 import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {};
@@ -24,8 +24,9 @@ const Navbar = (props: Props) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const [openProfileModal, setOpenProfileModal] = useState<{
+    action: UserModalAction;
     userId: string;
-    userData: ProfileFormData;
+    userData: UserFormData;
   } | null>(null);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -38,11 +39,11 @@ const Navbar = (props: Props) => {
   const handleProfileModalClick = () => {
     setAnchorEl(null);
     setOpenProfileModal({
+      action: UserModalAction.PATCH,
       userId: authCtx!.user!.id!,
       userData: {
         username: authCtx!.user!.username,
         email: authCtx!.user!.email,
-        enabled: authCtx!.user!.enabled,
       },
     });
   };
@@ -103,11 +104,11 @@ const Navbar = (props: Props) => {
         </Box>
       </Toolbar>
 
-      <ProfileModal
+      <UserModal
         handleClose={handleCloseProfileModal}
+        action={openProfileModal?.action}
         userId={openProfileModal?.userId}
         userData={openProfileModal?.userData}
-        hideEnableToggle
         successCallback={editSuccessCallback}
       />
     </AppBar>

@@ -37,7 +37,7 @@ type NewUser = {
 export const createUserReq = async (data: NewUser) => {
   return axios.post(
     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/users`,
-    data
+    { user: data }
   );
 };
 
