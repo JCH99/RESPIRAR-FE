@@ -90,7 +90,7 @@ type NewOrganization = {
 export const createOrganizationReq = async (data: NewOrganization) => {
   return axios.post(
     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations`,
-    data
+    { organization: data }
   );
 };
 
@@ -113,7 +113,7 @@ export const patchOrganizationReq = async (data: PatchOrganization) => {
   const { organizationId, organizationData } = data;
   return axios.patch(
     `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${organizationId}`,
-    organizationData
+    { organization: organizationData }
   );
 };
 

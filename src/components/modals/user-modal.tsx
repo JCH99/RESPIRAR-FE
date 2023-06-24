@@ -22,8 +22,8 @@ export type ProfileFormData = {
 
 type Props = {
   handleClose: () => void;
-  userId: string | undefined;
-  userData: ProfileFormData | undefined;
+  userId?: string;
+  userData?: ProfileFormData;
   hideEnableToggle?: boolean;
   successCallback?: () => void;
 };

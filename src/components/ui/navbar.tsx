@@ -13,7 +13,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
-import ProfileModal, { ProfileFormData } from "../profile-modal";
+import ProfileModal, { ProfileFormData } from "../modals/user-modal";
 import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {};

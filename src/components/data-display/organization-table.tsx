@@ -10,10 +10,16 @@ import TableToolbar from "./table-toolbar";
 import { Box, Chip, IconButton, Tooltip } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SnackbarsContext } from "../../../context/snackbars-context";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import PersonIcon from "@mui/icons-material/Person";
+import GroupsIcon from "@mui/icons-material/Groups";
+import { deleteOrganizationReq } from "../../../api/api";
+import OrganizationModal, {
+  OrganizationFormData,
+  OrganizationModalAction,
+} from "../modals/organization-modal";
 
 type Props = {
   organizations: Organization[];
@@ -23,13 +29,50 @@ export default function OrganizationTable(props: Props) {
   const { organizations } = props;
   const queryClient = useQueryClient();
   const { openSnackbar } = useContext(SnackbarsContext);
+  const [openOrganizationModal, setOpenOrganizationModal] = useState<{
+    action: OrganizationModalAction;
+    organizationId?: string;
+    organizationData?: OrganizationFormData;
+  } | null>(null);
+
+  const { mutate: deleteOrganization } = useMutation(
+    ["deleteOrganization"],
+    deleteOrganizationReq,
+    {
+      onSuccess: async () => {
+        openSnackbar("Se elimino correctamente la organización!", "success");
+        editAndDeleteSuccessCallback();
+      },
+      onError: (error: any) => {
+        openSnackbar("Hubo un error. Por favor intente luego", "error");
+      },
+    }
+  );
+
+  const handleProfileModalClick = (organizationModal: {
+    action: OrganizationModalAction;
+    organizationId?: string;
+    organizationData?: OrganizationFormData;
+  }) => {
+    setOpenOrganizationModal(organizationModal);
+  };
+
+  const handleCloseProfileModal = () => {
+    setOpenOrganizationModal(null);
+  };
+
+  const editAndDeleteSuccessCallback = () => {
+    queryClient.invalidateQueries(["getOrganizationList"]);
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
         <TableToolbar
           name="Organizaciones"
-          addHandler={() => console.log("TODO")}
+          addHandler={() =>
+            handleProfileModalClick({ action: OrganizationModalAction.CREATE })
+          }
           count={organizations.length}
         />
 
@@ -74,13 +117,41 @@ export default function OrganizationTable(props: Props) {
                       arrow
                       title={
                         organization.role !== Role.OWNER
+                          ? "Solo Owners pueden editar los miembros"
+                          : ""
+                      }
+                    >
+                      <span>
+                        <IconButton disabled={organization.role !== Role.OWNER}>
+                          <GroupsIcon onClick={() => console.log("TODO")} />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip
+                      arrow
+                      title={
+                        organization.role !== Role.OWNER
                           ? "Solo Owners pueden editar la organización"
                           : ""
                       }
                     >
-                      <IconButton disabled={organization.role !== Role.OWNER}>
-                        <SettingsIcon onClick={() => console.log("TODO")} />
-                      </IconButton>
+                      <span>
+                        <IconButton disabled={organization.role !== Role.OWNER}>
+                          <SettingsIcon
+                            onClick={() =>
+                              handleProfileModalClick({
+                                action: OrganizationModalAction.PATCH,
+                                organizationId: organization.Organization.id,
+                                organizationData: {
+                                  name: organization.Organization.name,
+                                  description:
+                                    organization.Organization.description,
+                                },
+                              })
+                            }
+                          />
+                        </IconButton>
+                      </span>
                     </Tooltip>
                     <Tooltip
                       arrow
@@ -90,16 +161,20 @@ export default function OrganizationTable(props: Props) {
                           : ""
                       }
                     >
-                      <IconButton disabled={organization.role !== Role.OWNER}>
-                        <DeleteIcon
-                          onClick={() => console.log("TODO")}
-                          color={
-                            organization.role === Role.OWNER
-                              ? "error"
-                              : "disabled"
-                          }
-                        />
-                      </IconButton>
+                      <span>
+                        <IconButton disabled={organization.role !== Role.OWNER}>
+                          <DeleteIcon
+                            onClick={() =>
+                              deleteOrganization(organization.Organization.id)
+                            }
+                            color={
+                              organization.role === Role.OWNER
+                                ? "error"
+                                : "disabled"
+                            }
+                          />
+                        </IconButton>
+                      </span>
                     </Tooltip>
                   </TableCell>
                 </TableRow>
@@ -108,6 +183,14 @@ export default function OrganizationTable(props: Props) {
           </Table>
         </Box>
       </Paper>
+
+      <OrganizationModal
+        handleClose={handleCloseProfileModal}
+        action={openOrganizationModal?.action}
+        organizationId={openOrganizationModal?.organizationId}
+        organizationData={openOrganizationModal?.organizationData}
+        successCallback={editAndDeleteSuccessCallback}
+      />
     </Box>
   );
 }

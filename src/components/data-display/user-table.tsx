@@ -8,15 +8,16 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { User } from "../../../utils/interfaces";
 import TableToolbar from "./table-toolbar";
-import { Box, IconButton } from "@mui/material";
+import { Box, IconButton, Tooltip } from "@mui/material";
 import NotInterestedIcon from "@mui/icons-material/NotInterested";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ProfileModal, { ProfileFormData } from "../profile-modal";
+import ProfileModal, { ProfileFormData } from "../modals/user-modal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteUserReq } from "../../../api/api";
 import { SnackbarsContext } from "../../../context/snackbars-context";
+import { AuthContext } from "../../../context/auth-context";
 
 type Props = {
   users: User[];
@@ -30,6 +31,7 @@ export default function UserTable(props: Props) {
     userId: string;
     userData: ProfileFormData;
   } | null>(null);
+  const authContext = useContext(AuthContext);
 
   const { mutate: deleteUser } = useMutation(["deleteUser"], deleteUserReq, {
     onSuccess: async () => {
@@ -76,46 +78,62 @@ export default function UserTable(props: Props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user, index) => (
-                <TableRow
-                  key={`${user.id}-${index}`}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {user.email}
-                  </TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell align="center">
-                    {user.enabled ? (
-                      <DoneAllIcon color="success" />
-                    ) : (
-                      <NotInterestedIcon color="warning" />
-                    )}
-                  </TableCell>
-                  <TableCell sx={{ display: "flex", justifyContent: "center" }}>
-                    <IconButton>
-                      <SettingsIcon
-                        onClick={() =>
-                          handleProfileModalClick({
-                            userId: user.id,
-                            userData: {
-                              username: user.username,
-                              email: user.email,
-                              enabled: user.enabled,
-                            },
-                          })
+              {users.map((user, index) => {
+                const isCurrentUser = authContext?.user?.id === user.id;
+                return (
+                  <TableRow
+                    key={`${user.id}-${index}`}
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {user.email}
+                    </TableCell>
+                    <TableCell>{user.username}</TableCell>
+                    <TableCell align="center">
+                      {user.enabled ? (
+                        <DoneAllIcon color="success" />
+                      ) : (
+                        <NotInterestedIcon color="warning" />
+                      )}
+                    </TableCell>
+                    <TableCell
+                      sx={{ display: "flex", justifyContent: "center" }}
+                    >
+                      <IconButton>
+                        <SettingsIcon
+                          onClick={() =>
+                            handleProfileModalClick({
+                              userId: user.id,
+                              userData: {
+                                username: user.username,
+                                email: user.email,
+                                enabled: user.enabled,
+                              },
+                            })
+                          }
+                        />
+                      </IconButton>
+                      <Tooltip
+                        arrow
+                        title={
+                          isCurrentUser
+                            ? "No podes eliminarte a vos mismo!"
+                            : ""
                         }
-                      />
-                    </IconButton>
-                    <IconButton>
-                      <DeleteIcon
-                        onClick={() => deleteUser(user.id)}
-                        color="error"
-                      />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+                      >
+                        <span>
+                          <IconButton disabled={isCurrentUser}>
+                            <DeleteIcon
+                              onClick={() => deleteUser(user.id)}
+                              color={isCurrentUser ? "disabled" : "error"}
+                            />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Box>
