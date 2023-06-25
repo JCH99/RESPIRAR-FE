@@ -35,7 +35,6 @@ const Login = () => {
 
   const { mutate: signIn, isLoading } = useMutation(["loginUser"], signInReq, {
     onSuccess: async (data, variables) => {
-      // console.log(data.headers["x-subject-token"], variables);
       const token = data.headers["x-subject-token"];
       if (watch().rememberMe) {
         localStorage.setItem("token", token);

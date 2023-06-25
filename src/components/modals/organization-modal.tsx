@@ -153,7 +153,6 @@ export default function OrganizationModal(props: Props) {
                 fullWidth
                 id="description"
                 label="Descripcion"
-                autoFocus
                 error={!!error}
                 helperText={error ? "La descripción es requerida" : ""}
               />
