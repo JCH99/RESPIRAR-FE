@@ -109,10 +109,16 @@ export default function UserModal(props: Props) {
   return (
     <Dialog open={!!action} onClose={handleClose}>
       <Box noValidate component="form" onSubmit={handleSubmit(onSubmit)}>
-        <DialogTitle>Editar Perfil</DialogTitle>
+        <DialogTitle>
+          {action === UserModalAction.CREATE
+            ? "Crear Usuario"
+            : "Editar Perfil"}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ marginBottom: "12px" }}>
-            Aquí podras editar los datos básicos del usuario.
+            {action === UserModalAction.CREATE
+              ? "Aquí podras crear el usuario."
+              : "Aquí podras editar los datos básicos del usuario."}
           </DialogContentText>
 
           <Controller

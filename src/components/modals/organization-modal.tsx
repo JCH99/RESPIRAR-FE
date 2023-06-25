@@ -50,7 +50,12 @@ export default function OrganizationModal(props: Props) {
   } = useForm<OrganizationFormData>();
 
   useEffect(() => {
-    reset(organizationData);
+    if (action === OrganizationModalAction.CREATE) {
+      reset({ name: "", description: "" });
+    }
+    if (action === OrganizationModalAction.PATCH) {
+      reset(organizationData);
+    }
   }, [action, organizationId, organizationData]);
 
   const { mutate: createOrganization } = useMutation(
@@ -98,10 +103,17 @@ export default function OrganizationModal(props: Props) {
   return (
     <Dialog open={!!action} onClose={handleClose}>
       <Box noValidate component="form" onSubmit={handleSubmit(onSubmit)}>
-        <DialogTitle>Editar Organización</DialogTitle>
+        <DialogTitle>
+          {action === OrganizationModalAction.CREATE ? "Crear" : "Editar"}{" "}
+          Organización
+        </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ marginBottom: "12px" }}>
-            Aquí podras editar los datos básicos de la organización.
+            Aquí podras{" "}
+            {action === OrganizationModalAction.CREATE
+              ? "crear"
+              : "editar los datos básicos de"}{" "}
+            la organización.
           </DialogContentText>
 
           <Controller

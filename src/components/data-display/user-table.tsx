@@ -102,18 +102,18 @@ export default function UserTable(props: Props) {
                     <TableCell
                       sx={{ display: "flex", justifyContent: "center" }}
                     >
-                      <IconButton>
-                        <SettingsIcon
-                          onClick={() =>
-                            handleProfileModalClick({
-                              userId: user.id,
-                              userData: {
-                                username: user.username,
-                                email: user.email,
-                              },
-                            })
-                          }
-                        />
+                      <IconButton
+                        onClick={() =>
+                          handleProfileModalClick({
+                            userId: user.id,
+                            userData: {
+                              username: user.username,
+                              email: user.email,
+                            },
+                          })
+                        }
+                      >
+                        <SettingsIcon />
                       </IconButton>
                       <Tooltip
                         arrow
@@ -124,9 +124,11 @@ export default function UserTable(props: Props) {
                         }
                       >
                         <span>
-                          <IconButton disabled={isCurrentUser}>
+                          <IconButton
+                            onClick={() => deleteUser(user.id)}
+                            disabled={isCurrentUser}
+                          >
                             <DeleteIcon
-                              onClick={() => deleteUser(user.id)}
                               color={isCurrentUser ? "disabled" : "error"}
                             />
                           </IconButton>

@@ -20,6 +20,7 @@ import OrganizationModal, {
   OrganizationFormData,
   OrganizationModalAction,
 } from "../modals/organization-modal";
+import UsersInOrgModal from "../modals/users-in-org-modal";
 
 type Props = {
   organizations: Organization[];
@@ -34,6 +35,9 @@ export default function OrganizationTable(props: Props) {
     organizationId?: string;
     organizationData?: OrganizationFormData;
   } | null>(null);
+  const [openUsersInOrgModal, setOpenUsersInOrgModal] = useState<string | null>(
+    null
+  );
 
   const { mutate: deleteOrganization } = useMutation(
     ["deleteOrganization"],
@@ -49,7 +53,7 @@ export default function OrganizationTable(props: Props) {
     }
   );
 
-  const handleProfileModalClick = (organizationModal: {
+  const handleOrganizationModalClick = (organizationModal: {
     action: OrganizationModalAction;
     organizationId?: string;
     organizationData?: OrganizationFormData;
@@ -57,8 +61,16 @@ export default function OrganizationTable(props: Props) {
     setOpenOrganizationModal(organizationModal);
   };
 
-  const handleCloseProfileModal = () => {
+  const handleCloseOrganizationModal = () => {
     setOpenOrganizationModal(null);
+  };
+
+  const handleUsersInOrgModalClick = (orgId: string) => {
+    setOpenUsersInOrgModal(orgId);
+  };
+
+  const handleCloseUsersInOrgModal = () => {
+    setOpenUsersInOrgModal(null);
   };
 
   const editAndDeleteSuccessCallback = () => {
@@ -71,7 +83,9 @@ export default function OrganizationTable(props: Props) {
         <TableToolbar
           name="Organizaciones"
           addHandler={() =>
-            handleProfileModalClick({ action: OrganizationModalAction.CREATE })
+            handleOrganizationModalClick({
+              action: OrganizationModalAction.CREATE,
+            })
           }
           count={organizations.length}
         />
@@ -122,8 +136,15 @@ export default function OrganizationTable(props: Props) {
                       }
                     >
                       <span>
-                        <IconButton disabled={organization.role !== Role.OWNER}>
-                          <GroupsIcon onClick={() => console.log("TODO")} />
+                        <IconButton
+                          onClick={() =>
+                            handleUsersInOrgModalClick(
+                              organization.Organization.id
+                            )
+                          }
+                          disabled={organization.role !== Role.OWNER}
+                        >
+                          <GroupsIcon />
                         </IconButton>
                       </span>
                     </Tooltip>
@@ -136,20 +157,21 @@ export default function OrganizationTable(props: Props) {
                       }
                     >
                       <span>
-                        <IconButton disabled={organization.role !== Role.OWNER}>
-                          <SettingsIcon
-                            onClick={() =>
-                              handleProfileModalClick({
-                                action: OrganizationModalAction.PATCH,
-                                organizationId: organization.Organization.id,
-                                organizationData: {
-                                  name: organization.Organization.name,
-                                  description:
-                                    organization.Organization.description,
-                                },
-                              })
-                            }
-                          />
+                        <IconButton
+                          onClick={() =>
+                            handleOrganizationModalClick({
+                              action: OrganizationModalAction.PATCH,
+                              organizationId: organization.Organization.id,
+                              organizationData: {
+                                name: organization.Organization.name,
+                                description:
+                                  organization.Organization.description,
+                              },
+                            })
+                          }
+                          disabled={organization.role !== Role.OWNER}
+                        >
+                          <SettingsIcon />
                         </IconButton>
                       </span>
                     </Tooltip>
@@ -162,11 +184,13 @@ export default function OrganizationTable(props: Props) {
                       }
                     >
                       <span>
-                        <IconButton disabled={organization.role !== Role.OWNER}>
+                        <IconButton
+                          onClick={() =>
+                            deleteOrganization(organization.Organization.id)
+                          }
+                          disabled={organization.role !== Role.OWNER}
+                        >
                           <DeleteIcon
-                            onClick={() =>
-                              deleteOrganization(organization.Organization.id)
-                            }
                             color={
                               organization.role === Role.OWNER
                                 ? "error"
@@ -185,11 +209,16 @@ export default function OrganizationTable(props: Props) {
       </Paper>
 
       <OrganizationModal
-        handleClose={handleCloseProfileModal}
+        handleClose={handleCloseOrganizationModal}
         action={openOrganizationModal?.action}
         organizationId={openOrganizationModal?.organizationId}
         organizationData={openOrganizationModal?.organizationData}
         successCallback={editAndDeleteSuccessCallback}
+      />
+
+      <UsersInOrgModal
+        orgId={openUsersInOrgModal}
+        handleClose={handleCloseUsersInOrgModal}
       />
     </Box>
   );
