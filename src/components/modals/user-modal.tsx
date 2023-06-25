@@ -62,7 +62,12 @@ export default function UserModal(props: Props) {
   } = useForm<UserFormData>();
 
   useEffect(() => {
-    reset(userData);
+    if (action === UserModalAction.CREATE) {
+      reset({ username: "", email: "", password: "", repeatPassword: "" });
+    }
+    if (action === UserModalAction.PATCH) {
+      reset(userData);
+    }
   }, [action, userId, userData]);
 
   const { mutate: createUser } = useMutation(["createUser"], createUserReq, {
@@ -162,10 +167,17 @@ export default function UserModal(props: Props) {
                   name="password"
                   control={control}
                   defaultValue=""
-                  rules={{ required: true }}
+                  rules={{
+                    required: "La contraseña es requerida",
+                  }}
                   render={({ field, fieldState: { error } }) => (
                     <FormControl variant="outlined" fullWidth>
-                      <InputLabel htmlFor="password">Contraseña</InputLabel>
+                      <InputLabel
+                        color={!!error ? "error" : "primary"}
+                        htmlFor="password"
+                      >
+                        Contraseña
+                      </InputLabel>
                       <OutlinedInput
                         {...field}
                         id="password"
@@ -204,10 +216,18 @@ export default function UserModal(props: Props) {
                   name="repeatPassword"
                   control={control}
                   defaultValue=""
-                  rules={{ required: true }}
+                  rules={{
+                    required: "Repita la contraseña",
+                    validate: (_, formValues) =>
+                      formValues.password === formValues.repeatPassword ||
+                      "Las contraseñas deben coincidir!",
+                  }}
                   render={({ field, fieldState: { error } }) => (
                     <FormControl variant="outlined" fullWidth>
-                      <InputLabel htmlFor="repeatPassword">
+                      <InputLabel
+                        color={!!error ? "error" : "primary"}
+                        htmlFor="repeatPassword"
+                      >
                         Repetir Contraseña
                       </InputLabel>
                       <OutlinedInput

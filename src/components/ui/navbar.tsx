@@ -54,6 +54,7 @@ const Navbar = (props: Props) => {
 
   const editSuccessCallback = () => {
     queryClient.invalidateQueries(["getUserInfoViaToken", authCtx?.token]);
+    queryClient.invalidateQueries(["getUserList"]);
   };
 
   return (
