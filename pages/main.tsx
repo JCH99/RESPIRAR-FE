@@ -33,8 +33,10 @@ const Main = () => {
         queryClient.setQueryData(["getOrganizationList"], (oldState: any) => {
           // UGLY VERY UGLY CODE I HAD TO DO BECAUSE GET-ORGS RETURNS 404 WHEN NO ORGS ARE FOUND. JUST RETURN EMPTY ARRAY DUDE -.-
           const newState = cloneDeep(oldState);
-          newState.data.organizations = [];
-          return newState;
+          if (newState) {
+            newState.data.organizations = [];
+            return newState;
+          }
         });
       },
     }
