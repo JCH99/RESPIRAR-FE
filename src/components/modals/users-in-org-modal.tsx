@@ -20,15 +20,20 @@ import RoleColumb from "../dragndrop/role-column";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import { cloneDeep, differenceBy } from "lodash";
 
-function filterUniqueChanges(changes: Change[]): Change[] {
-  const uniqueChanges: { [userId: string]: Change } = {};
-
-  for (const change of changes) {
-    uniqueChanges[change.userId] = change;
-  }
-
-  return Object.values(uniqueChanges);
-}
+const columnsPlaceholder = {
+  agregables: {
+    id: "agregables",
+    list: [],
+  },
+  members: {
+    id: "members",
+    list: [],
+  },
+  owners: {
+    id: "owners",
+    list: [],
+  },
+};
 
 enum ChangeType {
   ADD_MOVE = "add_move",
@@ -39,6 +44,13 @@ type Change = {
   type: ChangeType;
   userId: string;
   role?: Role;
+};
+
+type Columns = {
+  [key: string]: {
+    id: string;
+    list: IUserInOrg[];
+  };
 };
 
 export type IUserInOrg = {
@@ -56,32 +68,19 @@ export default function UsersInOrgModal(props: Props) {
   const { orgId, handleClose } = props;
   const { openSnackbar } = useContext(SnackbarsContext);
 
-  const initialColumns = {
-    agregables: {
-      id: "agregables",
-      list: [],
-    },
-    members: {
-      id: "members",
-      list: [],
-    },
-    owners: {
-      id: "owners",
-      list: [],
-    },
-  };
+  const [initialColumns, setInitialColumns] = useState<{
+    [key: string]: {
+      id: string;
+      list: IUserInOrg[];
+    };
+  }>(columnsPlaceholder);
 
   const [columns, setColumns] = useState<{
     [key: string]: {
       id: string;
       list: IUserInOrg[];
     };
-  }>(initialColumns);
-
-  const [changes, setChanges] = useState<Change[]>([]);
-  useEffect(() => {
-    setChanges([]);
-  }, [orgId]);
+  }>(columnsPlaceholder);
 
   const { data: allUsers } = useQuery(["getUserList"], () => getUserListReq(), {
     select: (data) => {
@@ -110,7 +109,7 @@ export default function UsersInOrgModal(props: Props) {
   );
 
   useEffect(() => {
-    if (organizationUsers) {
+    if (!!organizationUsers && !!allUsers) {
       const agregables = differenceBy(
         allUsers,
         organizationUsers,
@@ -127,7 +126,7 @@ export default function UsersInOrgModal(props: Props) {
         (user: IUserInOrg) => user.role === Role.OWNER
       );
 
-      setColumns({
+      const newColumns = {
         agregables: {
           id: "agregables",
           list: formattedAgregables,
@@ -140,7 +139,10 @@ export default function UsersInOrgModal(props: Props) {
           id: "owners",
           list: owners,
         },
-      });
+      };
+
+      setInitialColumns(cloneDeep(newColumns));
+      setColumns(cloneDeep(newColumns));
     }
   }, [organizationUsers, allUsers]);
 
@@ -204,35 +206,6 @@ export default function UsersInOrgModal(props: Props) {
         list: newEndList,
       };
 
-      // Dispatch the change event
-      const destinationId = destination.droppableId;
-      const userMoved = columns[source.droppableId].list[source.index];
-
-      if (destinationId === "owners" || destinationId === "members") {
-        const newRole = destinationId === "owners" ? "owner" : "member";
-        setChanges((prev) => {
-          return [
-            ...prev,
-            {
-              type: ChangeType.ADD_MOVE,
-              userId: userMoved.id,
-              role: newRole as Role,
-            },
-          ];
-        });
-      }
-      if (destinationId === "agregables") {
-        setChanges((prev) => {
-          return [
-            ...prev,
-            {
-              type: ChangeType.REMOVE,
-              userId: userMoved.id,
-            },
-          ];
-        });
-      }
-
       // Update the state
       setColumns((state) => ({
         ...state,
@@ -244,16 +217,6 @@ export default function UsersInOrgModal(props: Props) {
   };
 
   const deleteUserHandler = (rol: string, userId: string) => {
-    setChanges((prev) => {
-      return [
-        ...prev,
-        {
-          type: ChangeType.REMOVE,
-          userId: userId,
-        },
-      ];
-    });
-
     setColumns((prevState) => {
       const newState = cloneDeep(prevState);
       const userIndex = newState[rol].list.findIndex(
@@ -266,8 +229,6 @@ export default function UsersInOrgModal(props: Props) {
   };
 
   const onSubmit = () => {
-    const lastChangesById = filterUniqueChanges(changes);
-    console.log(lastChangesById);
     handleClose();
   };
 
@@ -296,7 +257,7 @@ export default function UsersInOrgModal(props: Props) {
             Cancelar
           </Button>
           <Button
-            disabled={changes.length === 0}
+            // disabled={changes.length === 0}
             onClick={onSubmit}
             type="button"
           >
