@@ -137,17 +137,18 @@ export default function UsersInOrgModal(props: Props) {
     (movements: Movement[]) => {
       const apiRequests = movements.map((movement) => {
         if (movement.to === "members" || movement.to === "owners") {
-          const role = movement.to === "members" ? "member" : "owner";
+          const newRole = movement.to === "members" ? "member" : "owner";
           return addUserToOrganizationReq({
             organizationId: orgId!,
             userId: movement.id,
-            role: role as Role,
+            role: newRole as Role,
           });
         } else {
+          const previousRole = movement.from === "members" ? "member" : "owner";
           return removeUserFromOrganizationReq({
             organizationId: orgId!,
             userId: movement.id,
-            role: "member" as Role, // TODO
+            role: previousRole as Role,
           });
         }
       });
