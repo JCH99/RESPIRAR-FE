@@ -1,9 +1,10 @@
-import React from "react";
+import { useContext } from "react";
 import UserInOrg from "./user-in-org";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import { IUserInOrg } from "../modals/users-in-org-modal";
 import { Box, IconButton, Paper, Typography } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { AuthContext } from "../../../context/auth-context";
 
 type Props = {
   col: {
@@ -14,6 +15,8 @@ type Props = {
 };
 
 export default function RoleColumn(props: Props) {
+  const authContext = useContext(AuthContext);
+
   const {
     col: { id, list },
     deleteUserHandler,
@@ -46,7 +49,7 @@ export default function RoleColumn(props: Props) {
                   user={user}
                   index={index}
                   deleteUserHandler={
-                    id !== "agregables"
+                    id !== "agregables" && authContext?.user?.id !== user.id
                       ? (userId: string) => deleteUserHandler(id, userId)
                       : undefined
                   }

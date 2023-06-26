@@ -9,9 +9,11 @@ import DialogTitle from "@mui/material/DialogTitle";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  addUserToOrganizationReq,
   createUserReq,
   getOrganizationUsers,
   getUserListReq,
+  removeUserFromOrganizationReq,
 } from "../../../api/api";
 import { SnackbarsContext } from "../../../context/snackbars-context";
 import { Box } from "@mui/material";
@@ -19,6 +21,20 @@ import { Role, User } from "../../../utils/interfaces";
 import RoleColumb from "../dragndrop/role-column";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import { cloneDeep, differenceBy } from "lodash";
+import { AuthContext } from "../../../context/auth-context";
+
+type Columns = {
+  [key: string]: {
+    id: string;
+    list: IUserInOrg[];
+  };
+};
+
+export type IUserInOrg = {
+  id: string;
+  username: string;
+  role?: Role;
+};
 
 const columnsPlaceholder = {
   agregables: {
@@ -35,29 +51,45 @@ const columnsPlaceholder = {
   },
 };
 
-enum ChangeType {
-  ADD_MOVE = "add_move",
-  REMOVE = "remove",
+type Movement = { id: string; from: string; to: string };
+
+function calculateMovements(initialObject: Columns, finalObject: Columns) {
+  const movements = [];
+
+  // Helper function to check if an item exists in a list
+  function itemExists(item: { id: string }, list: { id: string }[]) {
+    return list.some((listItem) => listItem.id === item.id);
+  }
+
+  // Helper function to find the list ID of an item
+  function findListId(item: { id: string }) {
+    if (itemExists(item, finalObject.agregables.list)) {
+      return finalObject.agregables.id;
+    } else if (itemExists(item, finalObject.members.list)) {
+      return finalObject.members.id;
+    } else if (itemExists(item, finalObject.owners.list)) {
+      return finalObject.owners.id;
+    }
+    return null; // Item not found
+  }
+
+  // Iterate over each list in the initial object
+  for (const [listKey, list] of Object.entries(initialObject)) {
+    // Iterate over each item in the list
+    for (const item of list.list) {
+      const itemMoved = !itemExists(item, finalObject[listKey].list);
+      if (itemMoved) {
+        const from = list.id;
+        const to = findListId(item);
+        if (to !== null) {
+          movements.push({ id: item.id, from, to });
+        }
+      }
+    }
+  }
+
+  return movements;
 }
-
-type Change = {
-  type: ChangeType;
-  userId: string;
-  role?: Role;
-};
-
-type Columns = {
-  [key: string]: {
-    id: string;
-    list: IUserInOrg[];
-  };
-};
-
-export type IUserInOrg = {
-  id: string;
-  username: string;
-  role?: Role;
-};
 
 type Props = {
   orgId: string | null;
@@ -67,20 +99,12 @@ type Props = {
 export default function UsersInOrgModal(props: Props) {
   const { orgId, handleClose } = props;
   const { openSnackbar } = useContext(SnackbarsContext);
+  const authContext = useContext(AuthContext);
 
-  const [initialColumns, setInitialColumns] = useState<{
-    [key: string]: {
-      id: string;
-      list: IUserInOrg[];
-    };
-  }>(columnsPlaceholder);
+  const [initialColumns, setInitialColumns] =
+    useState<Columns>(columnsPlaceholder);
 
-  const [columns, setColumns] = useState<{
-    [key: string]: {
-      id: string;
-      list: IUserInOrg[];
-    };
-  }>(columnsPlaceholder);
+  const [columns, setColumns] = useState<Columns>(columnsPlaceholder);
 
   const { data: allUsers } = useQuery(["getUserList"], () => getUserListReq(), {
     select: (data) => {
@@ -104,6 +128,41 @@ export default function UsersInOrgModal(props: Props) {
         );
 
         return formattedUsers;
+      },
+    }
+  );
+
+  const { mutate: updateUsersInOrg } = useMutation(
+    ["updateUsersInOrg"],
+    (movements: Movement[]) => {
+      const apiRequests = movements.map((movement) => {
+        if (movement.to === "members" || movement.to === "owners") {
+          const role = movement.to === "members" ? "member" : "owner";
+          return addUserToOrganizationReq({
+            organizationId: orgId!,
+            userId: movement.id,
+            role: role as Role,
+          });
+        } else {
+          return removeUserFromOrganizationReq({
+            organizationId: orgId!,
+            userId: movement.id,
+            role: "member" as Role, // TODO
+          });
+        }
+      });
+      return Promise.all(apiRequests);
+    },
+    {
+      onSuccess: async () => {
+        openSnackbar(
+          "Se actualizaron los usuarios de la organización!",
+          "success"
+        );
+        handleClose();
+      },
+      onError: (error: any) => {
+        openSnackbar("Hubo un error, por favor intenta luego.", "error");
       },
     }
   );
@@ -182,6 +241,15 @@ export default function UsersInOrgModal(props: Props) {
       setColumns((state) => ({ ...state, [newCol.id]: newCol }));
       return null;
     } else {
+      if (
+        columns[source.droppableId].list[source.index].id ===
+        authContext?.user?.id
+      ) {
+        //This means you are trying to move yourself
+        openSnackbar("No podes moverte a vos mismo!", "error");
+        return null;
+      }
+
       // If start is different from end, we need to update multiple columns
       // Filter the start list like before
       const newStartList = start.list.filter(
@@ -229,7 +297,12 @@ export default function UsersInOrgModal(props: Props) {
   };
 
   const onSubmit = () => {
-    handleClose();
+    const movements = calculateMovements(initialColumns, columns);
+    if (movements.length > 0) {
+      updateUsersInOrg(movements);
+    } else {
+      handleClose();
+    }
   };
 
   return (

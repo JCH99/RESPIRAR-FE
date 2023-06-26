@@ -133,13 +133,21 @@ export const deleteOrganizationReq = async (organizationId: string) => {
 
 //#region users x organizations
 
-type AddUserToOrganization = UserInOrganization & {
+type AddMoveRemoveUserToOrganization = UserInOrganization & {
   role: Role;
 };
 
-export const addUserToOrganizationReq = async (data: AddUserToOrganization) => {
+export const addUserToOrganizationReq = async (
+  data: AddMoveRemoveUserToOrganization
+) => {
   return axios.put(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${data.organizationId}/users/${data.userId}/organization_roles/${data.role}`
+    `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${data.organizationId}/users/${data.userId}/organization_roles/${data.role}`,
+    {},
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
   );
 };
 
@@ -149,9 +157,11 @@ export const getOrganizationUsers = async (organizationId: string) => {
   );
 };
 
-export const removeUserFromOrganization = async (data: UserInOrganization) => {
+export const removeUserFromOrganizationReq = async (
+  data: AddMoveRemoveUserToOrganization
+) => {
   return axios.delete(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${data.organizationId}/users/${data.userId}/organization_roles/member`
+    `${process.env.NEXT_PUBLIC_BASE_URL}/${API_VERSION}/organizations/${data.organizationId}/users/${data.userId}/organization_roles/${data.role}`
   );
 };
 
