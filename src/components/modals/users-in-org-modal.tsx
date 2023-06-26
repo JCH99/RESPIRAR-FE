@@ -18,7 +18,17 @@ import { Box } from "@mui/material";
 import { Role, User } from "../../../utils/interfaces";
 import RoleColumb from "../dragndrop/role-column";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import { cloneDeep } from "lodash";
+import { cloneDeep, differenceBy } from "lodash";
+
+function filterUniqueChanges(changes: Change[]): Change[] {
+  const uniqueChanges: { [userId: string]: Change } = {};
+
+  for (const change of changes) {
+    uniqueChanges[change.userId] = change;
+  }
+
+  return Object.values(uniqueChanges);
+}
 
 enum ChangeType {
   ADD_MOVE = "add_move",
@@ -34,7 +44,7 @@ type Change = {
 export type IUserInOrg = {
   id: string;
   username: string;
-  role: Role;
+  role?: Role;
 };
 
 type Props = {
@@ -46,42 +56,11 @@ export default function UsersInOrgModal(props: Props) {
   const { orgId, handleClose } = props;
   const { openSnackbar } = useContext(SnackbarsContext);
 
-  const MOCKUP_OWNERS = [
-    {
-      id: "123",
-      username: "owner1",
-      role: Role.OWNER,
-    },
-    {
-      id: "456",
-      username: "owner2",
-      role: Role.OWNER,
-    },
-    {
-      id: "789",
-      username: "owner3",
-      role: Role.OWNER,
-    },
-  ];
-  const MOCKUP_MEMBERS = [
-    {
-      id: "1234",
-      username: "member1 ",
-      role: Role.MEMBER,
-    },
-    {
-      id: "4567",
-      username: "member2",
-      role: Role.MEMBER,
-    },
-    {
-      id: "7890",
-      username: "member3",
-      role: Role.MEMBER,
-    },
-  ];
-
   const initialColumns = {
+    agregables: {
+      id: "agregables",
+      list: [],
+    },
     members: {
       id: "members",
       list: [],
@@ -98,8 +77,11 @@ export default function UsersInOrgModal(props: Props) {
       list: IUserInOrg[];
     };
   }>(initialColumns);
-  // console.log(columns.members.list, columns.owners.list);
+
   const [changes, setChanges] = useState<Change[]>([]);
+  useEffect(() => {
+    setChanges([]);
+  }, [orgId]);
 
   const { data: allUsers } = useQuery(["getUserList"], () => getUserListReq(), {
     select: (data) => {
@@ -129,34 +111,41 @@ export default function UsersInOrgModal(props: Props) {
 
   useEffect(() => {
     if (organizationUsers) {
+      const agregables = differenceBy(
+        allUsers,
+        organizationUsers,
+        "id"
+      ) as any as User[];
+      const formattedAgregables = agregables.map((user: User) => {
+        return { id: user.id, username: user.username };
+      });
+
       const members = organizationUsers.filter(
         (user: IUserInOrg) => user.role === Role.MEMBER
       );
       const owners = organizationUsers.filter(
         (user: IUserInOrg) => user.role === Role.OWNER
       );
-      console.log(members, owners);
+
       setColumns({
+        agregables: {
+          id: "agregables",
+          list: formattedAgregables,
+        },
         members: {
           id: "members",
-          list: MOCKUP_MEMBERS,
+          list: members,
         },
         owners: {
           id: "owners",
-          list: MOCKUP_OWNERS,
+          list: owners,
         },
       });
     }
-  }, [organizationUsers, orgId]);
-  //TODO: REMOVE ORGID
+  }, [organizationUsers, allUsers]);
 
-  const onSubmit = () => {
-    handleClose();
-  };
-  console.log(columns);
   const onDragEnd = ({ source, destination }: DropResult) => {
     // Make sure we have a valid destination
-    console.log(destination);
     if (destination === undefined || destination === null) return null;
 
     // Make sure we're actually moving the item
@@ -215,6 +204,35 @@ export default function UsersInOrgModal(props: Props) {
         list: newEndList,
       };
 
+      // Dispatch the change event
+      const destinationId = destination.droppableId;
+      const userMoved = columns[source.droppableId].list[source.index];
+
+      if (destinationId === "owners" || destinationId === "members") {
+        const newRole = destinationId === "owners" ? "owner" : "member";
+        setChanges((prev) => {
+          return [
+            ...prev,
+            {
+              type: ChangeType.ADD_MOVE,
+              userId: userMoved.id,
+              role: newRole as Role,
+            },
+          ];
+        });
+      }
+      if (destinationId === "agregables") {
+        setChanges((prev) => {
+          return [
+            ...prev,
+            {
+              type: ChangeType.REMOVE,
+              userId: userMoved.id,
+            },
+          ];
+        });
+      }
+
       // Update the state
       setColumns((state) => ({
         ...state,
@@ -226,12 +244,31 @@ export default function UsersInOrgModal(props: Props) {
   };
 
   const deleteUserHandler = (rol: string, userId: string) => {
+    setChanges((prev) => {
+      return [
+        ...prev,
+        {
+          type: ChangeType.REMOVE,
+          userId: userId,
+        },
+      ];
+    });
+
     setColumns((prevState) => {
       const newState = cloneDeep(prevState);
-      const newList = newState[rol].list.filter((item) => item.id !== userId);
-      newState[rol].list = newList;
+      const userIndex = newState[rol].list.findIndex(
+        (item) => item.id === userId
+      );
+      const removedUser = newState[rol].list.splice(userIndex, 1)[0];
+      newState["agregables"].list.push(removedUser);
       return newState;
     });
+  };
+
+  const onSubmit = () => {
+    const lastChangesById = filterUniqueChanges(changes);
+    console.log(lastChangesById);
+    handleClose();
   };
 
   return (

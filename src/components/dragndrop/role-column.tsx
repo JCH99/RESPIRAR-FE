@@ -26,23 +26,18 @@ export default function RoleColumn(props: Props) {
           sx={{ width: 200, p: 1, minHeight: 200, position: "relative" }}
           component={Paper}
         >
-          <Box
+          <Typography
             sx={{
-              display: "flex",
-              gap: 1,
-              alignItems: "center",
-              justifyContent: "center",
               textTransform: "capitalize",
               mb: 0.5,
             }}
+            variant="h6"
+            component="h3"
+            align="center"
           >
-            <Typography variant="h6" component="h3">
-              {id}
-            </Typography>
-            <IconButton color="primary" onClick={() => console.log("TODO")}>
-              <PersonAddIcon />
-            </IconButton>
-          </Box>
+            {id}
+          </Typography>
+
           <div {...provided.droppableProps} ref={provided.innerRef}>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               {list.map((user, index) => (
@@ -50,8 +45,10 @@ export default function RoleColumn(props: Props) {
                   key={`${user.id}`}
                   user={user}
                   index={index}
-                  deleteUserHandler={(userId: string) =>
-                    deleteUserHandler(id, userId)
+                  deleteUserHandler={
+                    id !== "agregables"
+                      ? (userId: string) => deleteUserHandler(id, userId)
+                      : undefined
                   }
                 />
               ))}
@@ -59,6 +56,7 @@ export default function RoleColumn(props: Props) {
                 <Draggable
                   draggableId={"droppable-placeholder-bugfix"}
                   index={0}
+                  isDragDisabled
                 >
                   {(provided) => (
                     <div

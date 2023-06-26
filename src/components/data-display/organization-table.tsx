@@ -22,6 +22,15 @@ import OrganizationModal, {
 } from "../modals/organization-modal";
 import UsersInOrgModal from "../modals/users-in-org-modal";
 
+function shortenString(text: string, maxLength: number): string {
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  const shortenedText = text.substring(0, maxLength - 3).trim();
+  return shortenedText + "...";
+}
+
 type Props = {
   organizations: Organization[];
 };
@@ -94,8 +103,8 @@ export default function OrganizationTable(props: Props) {
           <Table aria-label="organizations table">
             <TableHead>
               <TableRow>
-                <TableCell width={"40%"}>Nombre</TableCell>
-                <TableCell width={"40%"}>Descripcion</TableCell>
+                <TableCell width={"25%"}>Nombre</TableCell>
+                <TableCell width={"55%"}>Descripcion</TableCell>
                 <TableCell align="center">Rol</TableCell>
                 <TableCell align="center">Acciones</TableCell>
               </TableRow>
@@ -109,7 +118,9 @@ export default function OrganizationTable(props: Props) {
                   <TableCell component="th" scope="row">
                     {organization.Organization.name}
                   </TableCell>
-                  <TableCell>{organization.Organization.description}</TableCell>
+                  <TableCell>
+                    {shortenString(organization.Organization.description, 70)}
+                  </TableCell>
                   <TableCell align="center">
                     {organization.role === Role.OWNER && (
                       <Chip

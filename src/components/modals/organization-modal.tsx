@@ -146,8 +146,8 @@ export default function OrganizationModal(props: Props) {
                 {...field}
                 multiline
                 minRows={2}
-                maxRows={5}
-                inputProps={{ maxLength: 250 }}
+                maxRows={3}
+                inputProps={{ maxLength: 150 }}
                 margin="normal"
                 required
                 fullWidth

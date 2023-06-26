@@ -5,7 +5,7 @@ import Chip from "@mui/material/Chip";
 type Props = {
   user: IUserInOrg;
   index: number;
-  deleteUserHandler: (userId: string) => void;
+  deleteUserHandler?: (userId: string) => void;
 };
 
 export default function UserInOrg(props: Props) {
@@ -19,10 +19,12 @@ export default function UserInOrg(props: Props) {
           {...provided.dragHandleProps}
         >
           <Chip
-            sx={{ m: 0.5 }}
+            sx={{ m: 0.2, cursor: "pointer" }}
             label={user.username}
             variant="outlined"
-            onDelete={() => deleteUserHandler(user.id)}
+            onDelete={
+              deleteUserHandler ? () => deleteUserHandler(user.id) : undefined
+            }
           />
         </div>
       )}
