@@ -132,7 +132,7 @@ export default function UsersInOrgModal(props: Props) {
     }
   );
 
-  const { mutate: updateUsersInOrg } = useMutation(
+  const { mutate: updateUsersInOrg, isLoading: loadingMutation } = useMutation(
     ["updateUsersInOrg"],
     (movements: Movement[]) => {
       const apiRequests = movements.map((movement) => {
@@ -330,11 +330,7 @@ export default function UsersInOrgModal(props: Props) {
           <Button type="button" onClick={handleClose}>
             Cancelar
           </Button>
-          <Button
-            // disabled={changes.length === 0}
-            onClick={onSubmit}
-            type="button"
-          >
+          <Button disabled={loadingMutation} onClick={onSubmit} type="button">
             Guardar Cambios
           </Button>
         </DialogActions>
