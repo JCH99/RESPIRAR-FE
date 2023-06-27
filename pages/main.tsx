@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Box } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import Image from "next/image";
 import UserTable from "../src/components/data-display/user-table";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -53,7 +53,11 @@ const Main = () => {
       }}
     >
       <Image src="/images/logo.png" alt="logo" height={135} width={291} />
-      <Box sx={{ width: "100%", display: "flex", gap: 4 }}>
+      <Stack
+        sx={{ width: "100%", display: "flex" }}
+        direction={{ xs: "column", lg: "row" }}
+        spacing={4}
+      >
         {isAdmin && (
           <Box sx={{ flex: 1 }}>
             <FadeInComponent>
@@ -66,7 +70,7 @@ const Main = () => {
             <OrganizationTable organizations={organizations || []} />
           </FadeInComponent>
         </Box>
-      </Box>
+      </Stack>
     </Box>
   );
 };

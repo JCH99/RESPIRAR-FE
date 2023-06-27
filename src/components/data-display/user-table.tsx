@@ -70,8 +70,15 @@ export default function UserTable(props: Props) {
           count={users.length}
         />
 
-        <Box sx={{ borderTop: 1, borderColor: "grey.300" }}>
-          <Table aria-label="users table">
+        <TableContainer
+          sx={{
+            borderTop: 1,
+            borderColor: "grey.300",
+            maxHeight: 500,
+            overflowY: "auto",
+          }}
+        >
+          <Table stickyHeader aria-label="users table">
             <TableHead>
               <TableRow>
                 <TableCell width={"40%"}>Email</TableCell>
@@ -140,7 +147,7 @@ export default function UserTable(props: Props) {
               })}
             </TableBody>
           </Table>
-        </Box>
+        </TableContainer>
       </Paper>
 
       <UserModal

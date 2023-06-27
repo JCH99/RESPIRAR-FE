@@ -7,7 +7,7 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { Organization, Role } from "../../../utils/interfaces";
 import TableToolbar from "./table-toolbar";
-import { Box, Chip, IconButton, Tooltip } from "@mui/material";
+import { Box, Chip, IconButton, TableContainer, Tooltip } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -99,8 +99,15 @@ export default function OrganizationTable(props: Props) {
           count={organizations.length}
         />
 
-        <Box sx={{ borderTop: 1, borderColor: "grey.300" }}>
-          <Table aria-label="organizations table">
+        <TableContainer
+          sx={{
+            borderTop: 1,
+            borderColor: "grey.300",
+            maxHeight: 500,
+            overflowY: "auto",
+          }}
+        >
+          <Table stickyHeader aria-label="organizations table">
             <TableHead>
               <TableRow>
                 <TableCell width={"25%"}>Nombre</TableCell>
@@ -216,7 +223,7 @@ export default function OrganizationTable(props: Props) {
               ))}
             </TableBody>
           </Table>
-        </Box>
+        </TableContainer>
       </Paper>
 
       <OrganizationModal
