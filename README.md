@@ -1,44 +1,97 @@
-# Material UI - Next.js example in TypeScript
+![G1 banner](https://smlab.imd.ufrn.br/wp-content/uploads/2022/12/FIWARE.png)
 
-## How to use
+Web: [Identity Manager
+](http://46.17.108.45:3000/)
 
-Download the example [or clone the repo](https://github.com/mui/material-ui):
+# Instrucciones para levantar el Proyecto la webapp
 
-<!-- #default-branch-switch -->
+1. Clonar el repositorio
+2. Crear un archivo .env.local con la siguiente variable de entorno.
 
-```sh
-curl https://codeload.github.com/mui/material-ui/tar.gz/master | tar -xz --strip=2  material-ui-master/examples/material-next-ts
-cd material-next-ts
+```
+NEXT_PUBLIC_BASE_URL=${API_URL}
 ```
 
-Install it and run:
+3. La API_URL deberá remplazarse por la del servidor FIWARE previamente creado. Un minitutorial se encuentra en el siguiente README [README](https://github.com/FdValls/Respirar-mobile/blob/main/README.md)
 
-```sh
-npm install
-npm run dev
+4. Corroborar tener node > 16 instalado en el sistema y luego instalar las dependencias.
+
+```bash
+  npm install
 ```
 
-or:
+5. Correr el proyecto. Se podrá acceder desde localhost:3000
 
-<!-- #default-branch-switch -->
+```bash
+  npm run dev
+```
 
-[![Edit on StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/mui/material-ui/tree/master/examples/material-next-ts)
+# FIWARE Keyrock [Identity Manager]
 
-[![Edit on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/mui/material-ui/tree/master/examples/material-next-ts)
+A continuación explicaremos brevemente la integracion con FIWARE a traves de **Keyrock** , un habilitador de identidades que nos permite autenticarnos en la api. Explicaremos tanto la funcionalidad, cómo tambien la creación de usuarios, organizaciones y asignaciones de roles.
 
-## The idea behind the example
+**Integrantes**\
+Fernando Valls\
+Ezequiel Cherone\
+Moises Natan Fuks\
+Juan Manuel Campagna\
+Joaquin Charovsky\
+Elyelin Carrasquero
 
-The project uses [Next.js](https://github.com/vercel/next.js), which is a framework for server-rendered React apps.
-It includes `@mui/material` and its peer dependencies, including [Emotion](https://emotion.sh/docs/introduction), the default style engine in Material UI v5. If you prefer, you can [use styled-components instead](https://mui.com/material-ui/guides/interoperability/#styled-components).
+**Roles**
 
-## The link component
+- Fernando Valls:
 
-The [example folder](https://github.com/mui/material-ui/tree/HEAD/examples/material-next-ts) provides an adapter for the use of [Next.js's Link component](https://nextjs.org/docs/api-reference/next/link) with MUI.
-More information [in the documentation](https://mui.com/material-ui/guides/routing/#next-js).
+  Mobile - configuracion endPoints - arquitectura de vistas - crud organizaciones / roles - logout
 
-## What's next?
+- Ezequiel Cherone:
 
-<!-- #default-branch-switch -->
+  Mobile - configuración nav lateral - login - crud usuarios / dockerizacion y montaje servidor
 
-You now have a working example project.
-You can head back to the documentation, continuing browsing it from the [templates](https://mui.com/material-ui/getting-started/templates/) section.
+- Moises Natan Fuks
+
+  Mobile - login - estilos - huella biométrica - crud user
+
+- Juan Manuel Campagna
+
+  Mobile - crud organizaciones / roles
+
+- Joaquin Charovsky
+
+  Front - login - endPoints - crud usuario - crud organizaciones
+
+- Elyelin Carrasquero
+
+  Mobile - styles - testing - documentación - manuales
+
+**Funcionalidad**
+
+Nuesta app comienza con la pantalla de login, el cual previamente deberá haberse creado un usuario en la pagina de keyrock y debe ser habilitado por un administrador.
+Luego del login dependiendo de los permisos que tenga el usaurio verá las vistas permitidas (hay restricciones para la vista de algunos fragmentos dependiendo del rol que tenga el usuario, si es o no "admin").
+
+Dashboard principal:
+
+- Lista de organizaciones en la cual esta involucrado el usuario
+
+Perfil NO administrador:
+
+- Creación, edición y eliminación de organizaciones (siempre y cuando sea "owner" de esa organización).
+
+Perfil administrador:
+
+- Creación, edición y eliminación de organizaciones (siempre y cuando sea "owner" de esa organización).
+
+- Creación, edición y eliminación de usuarios.
+
+- Asignación de usuarios con su correspondiente rol a una organización (siempre y cuando sea "owner" de esa organización).
+
+- Visualización de usuarios y rol correspondientes a la organización seleccionada.
+
+# Consultas
+
+fernandodanielvalls@gmail.com\
+campagnajuanmanuel@gmail.com\
+moshifuks2001@gmail.com\
+chero2005@hotmail.com\
+joaquincharovsky@gmail.com\
+elyelin15@gmail.com
