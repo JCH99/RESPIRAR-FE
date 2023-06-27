@@ -3,16 +3,16 @@
 Web: [Identity Manager
 ](http://46.17.108.45:3000/)
 
-# Instrucciones para levantar el Proyecto la webapp
+# Instrucciones para levantar la webApp
 
 1. Clonar el repositorio
-2. Crear un archivo .env.local con la siguiente variable de entorno.
+2. Crear en el root un archivo .env.local con la siguiente variable de entorno.
 
 ```
 NEXT_PUBLIC_BASE_URL=${API_URL}
 ```
 
-3. La API_URL deberá remplazarse por la del servidor FIWARE previamente creado. Un minitutorial se encuentra en el siguiente README [README](https://github.com/FdValls/Respirar-mobile/blob/main/README.md)
+3. La API_URL deberá remplazarse por la del servidor FIWARE previamente creado. Un minitutorial se encuentra en el siguiente [README](https://github.com/FdValls/Respirar-mobile/blob/main/README.md)
 
 4. Corroborar tener node > 16 instalado en el sistema y luego instalar las dependencias.
 
@@ -76,6 +76,8 @@ Dashboard principal:
 Perfil NO administrador:
 
 - Creación, edición y eliminación de organizaciones (siempre y cuando sea "owner" de esa organización).
+
+- Asignación de usuarios con su correspondiente rol a una organización (siempre y cuando sea "owner" de esa organización).
 
 Perfil administrador:
 
